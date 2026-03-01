@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrjaExchange | Indore Nature-Grid MASTER SYNC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        :root { --leaf-green: #5ff16a; --forest-dark: #061a12; }
+        
+        * { cursor: none !important; }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--forest-dark);
+            background-image: linear-gradient(rgba(6, 26, 18, 0.96), rgba(6, 26, 18, 0.96)), url('image_051237.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: white; min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* CUSTOM CURSOR */
+        #custom-cursor { width: 20px; height: 20px; border: 2px solid var(--leaf-green); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: transform 0.1s ease; box-shadow: 0 0 15px var(--leaf-green); }
+        #cursor-dot { width: 4px; height: 4px; background: white; border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; }
+
+        .leaf-glass { background: rgba(15, 26, 20, 0.95); backdrop-filter: blur(30px); border: 1px solid rgba(95, 241, 106, 0.15); border-radius: 32px; }
+        .full-screen-suite { position: fixed; inset: 0; z-index: 500; background: var(--forest-dark); overflow-y: auto; padding: 40px; display: none; }
+        
+        input, select { background: #FFFFFF !important; border: 2px solid var(--leaf-green) !important; color: #000 !important; border-radius: 12px !important; padding: 12px 16px !important; width: 100%; font-weight: 700; outline: none; }
+        
+        .hidden { display: none !important; }
+        .grid-card { transition: 0.3s ease; border: 1px solid rgba(255,255,255,0.05); }
+        .grid-card:hover { border-color: var(--leaf-green); transform: translateY(-5px); }
+        .sync-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(95, 241, 106, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(95, 241, 106, 0); } 100% { box-shadow: 0 0 0 0 rgba(95, 241, 106, 0); } }
+
+        .sort-btn { padding: 8px 16px; border-radius: 10px; font-size: 10px; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
+        .sort-btn:hover { background: var(--leaf-green); color: black; }
+    </style>
+</head>
+<body>
+
+    <div id="custom-cursor"></div>
+    <div id="cursor-dot"></div>
+
+    <header id="site-header" class="w-full px-10 py-4 flex justify-between items-center z-[100] border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0">
+        <div class="flex items-center gap-4">
+            <div class="p-2 bg-green-500/20 rounded-lg text-green-400 sync-pulse"><i class="fas fa-microchip"></i></div>
+            <h1 class="font-extrabold text-xl tracking-tighter uppercase">Urja<span class="text-green-400">Exchange</span></h1>
+        </div>
+        <div id="nav-controls" class="hidden flex items-center gap-8">
+            <div class="relative w-72">
+                <i class="fas fa-search absolute left-4 top-4 text-slate-400"></i>
+                <input type="text" id="search-grid" onkeyup="renderMarket()" placeholder="Search Indore Nodes..." class="!py-2 !pl-10 !text-sm">
+            </div>
+            <div onclick="toggleSuite('screen-profile')" class="cursor-pointer bg-white/5 px-4 py-2 rounded-full border border-white/10 flex items-center gap-3 hover:border-green-400 transition-all">
+                <span id="wallet-display" class="text-green-400 font-black text-sm">₹5,000.00</span>
+                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-black font-bold uppercase" id="nav-init">U</div>
+            </div>
+        </div>
+    </header>
+
+    <section id="screen-role" class="min-h-[85vh] flex flex-col items-center justify-center p-6">
+        <h2 class="text-7xl font-black mb-12 tracking-tighter text-center">Nature-Grid.</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl w-full">
+            <div onclick="selectRole('Producer')" class="leaf-glass p-16 text-center border-2 border-transparent hover:border-green-400/50 transition-all group">
+                <i class="fas fa-solar-panel text-6xl text-green-400 mb-8 group-hover:scale-110 transition-transform"></i>
+                <h3 class="text-4xl font-black">PRODUCER</h3>
+                <p class="text-slate-400 mt-4 italic text-sm font-bold">Broadcast Surplus & Earn Credits</p>
+            </div>
+            <div onclick="selectRole('Consumer')" class="leaf-glass p-16 text-center border-2 border-transparent hover:border-blue-400/50 transition-all group">
+                <i class="fas fa-house-circle-check text-6xl text-blue-400 mb-8 group-hover:scale-110 transition-transform"></i>
+                <h3 class="text-4xl font-black">CONSUMER</h3>
+                <p class="text-slate-400 mt-4 italic text-sm font-bold">Harvest Clean Local Energy</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="screen-auth" class="hidden min-h-[70vh] flex items-center justify-center p-6">
+        <div class="leaf-glass p-12 w-full max-w-md text-center">
+            <h2 class="text-3xl font-black mb-8">Node Initialization</h2>
+            <input type="text" id="user-name" placeholder="Full Name" class="mb-4">
+            <input type="tel" id="user-phone" placeholder="Mobile Number" class="mb-6">
+            <button onclick="requestOTP()" class="w-full py-4 bg-green-500 text-black font-black rounded-2xl">CONNECT TO GRID</button>
+        </div>
+    </section>
+
+    <section id="screen-otp" class="hidden min-h-[70vh] flex items-center justify-center p-6">
+        <div class="leaf-glass p-12 w-full max-w-sm text-center">
+            <h2 class="text-2xl font-black mb-2">Sync Key</h2>
+            <p id="otp-hint" class="text-green-400 text-[10px] font-black mb-8"></p>
+            <input type="text" id="otp-in" maxlength="6" class="text-center text-5xl font-black tracking-widest mb-8 !bg-transparent !text-white !border-b-2 !border-green-500 !rounded-none">
+            <button onclick="verifyOTP()" class="w-full py-4 bg-green-500 text-black font-black rounded-2xl">VERIFY IDENTITY</button>
+        </div>
+    </section>
+
+    <section id="screen-market" class="hidden p-12 max-w-7xl mx-auto">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <h2 class="text-5xl font-black tracking-tighter">Live Market</h2>
+                <p id="node-count-display" class="text-green-400 text-xs font-black uppercase mt-2 tracking-[0.2em]">LOADING NODES...</p>
+            </div>
+            <div id="producer-tool" class="hidden">
+                <button onclick="toggleSuite('screen-producer')" class="px-10 py-4 bg-green-500 text-black font-black rounded-2xl text-xs uppercase shadow-2xl">List Energy</button>
+            </div>
+        </div>
+
+        <div class="flex gap-4 mb-8 overflow-x-auto pb-4 no-scrollbar">
+            <button onclick="sortMarket('price-low')" class="sort-btn">Price: Low to High</button>
+            <button onclick="sortMarket('price-high')" class="sort-btn">Price: High to Low</button>
+            <button onclick="sortMarket('trending')" class="sort-btn">Trending Now</button>
+            <button onclick="sortMarket('best')" class="sort-btn">Best Value</button>
+        </div>
+
+        <div id="market-listings" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </section>
+
+    <div id="screen-producer" class="full-screen-suite">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex justify-between items-center mb-16">
+                <h2 class="text-5xl font-black italic">Broadcast Hub</h2>
+                <button onclick="toggleSuite('screen-producer')" class="text-slate-500 text-4xl hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="leaf-glass p-10 space-y-6">
+                    <h3 class="font-black text-xl mb-4 text-green-400 uppercase tracking-widest">Injection Details</h3>
+                    <input type="text" id="list-name" placeholder="Entity Name (e.g. Sudama Solar)">
+                    <input type="number" id="list-rate" placeholder="Rate (₹/kWh)">
+                    <input type="number" id="list-qty" placeholder="Units Available (kWh)">
+                    <button onclick="submitListing()" class="w-full py-5 bg-green-500 text-black font-black rounded-2xl text-xl mt-4">START BROADCAST</button>
+                </div>
+                <div class="leaf-glass p-10">
+                    <h3 class="font-black text-xl mb-4 text-blue-400 uppercase tracking-widest">Energy Performance Graph</h3>
+                    <div class="h-64"><canvas id="producerYieldChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-profile" class="full-screen-suite">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-16">
+                <h2 class="text-5xl font-black italic">Command Center</h2>
+                <button onclick="toggleSuite('screen-profile')" class="text-slate-500 text-4xl hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <div class="lg:col-span-2 leaf-glass p-10">
+                    <h3 class="text-xl font-black mb-6">Profit / Loss Investment Graph</h3>
+                    <div class="h-80"><canvas id="profitChart"></canvas></div>
+                </div>
+                <div class="space-y-6">
+                    <div class="leaf-glass p-8 bg-green-500/10 border-green-500/20">
+                        <p class="text-[10px] font-black text-slate-500 uppercase">Return on Investment</p>
+                        <h4 id="stat-savings" class="text-4xl font-black text-green-400">₹0.00</h4>
+                    </div>
+                    <div class="leaf-glass p-8 bg-blue-500/10 border-blue-500/20">
+                        <p class="text-[10px] font-black text-slate-500 uppercase">Carbon Neutrality</p>
+                        <h4 id="stat-carbon" class="text-4xl font-black text-blue-400">0 kg</h4>
+                    </div>
+                    <div class="leaf-glass p-8 bg-white/5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase">Wallet Credits</p>
+                        <h4 id="stat-wallet" class="text-4xl font-black">₹5,000.00</h4>
+                    </div>
+                </div>
+            </div>
+            <div id="consumer-compare-section" class="mb-12">
+                <h3 class="text-2xl font-black mb-6">Comparison: Purchased Entities</h3>
+                <div class="leaf-glass p-10 h-96"><canvas id="compareChart"></canvas></div>
+            </div>
+            <h3 class="text-2xl font-black mb-6 italic">Past Transactions & Trades</h3>
+            <div id="history-log" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <div id="modal-perf" class="fixed inset-0 z-[600] bg-black/95 hidden flex items-center justify-center p-8">
+        <div class="max-w-3xl w-full leaf-glass p-12 relative">
+            <button onclick="closePerf()" class="absolute top-8 right-8 text-slate-500 hover:text-white"><i class="fas fa-times"></i></button>
+            <h3 id="perf-title" class="text-3xl font-black mb-10 italic">Past Performance Graph</h3>
+            <div class="h-80"><canvas id="nodePerfChart"></canvas></div>
+        </div>
+    </div>
+
+    <script>
+        let state = { wallet: 5000, userRole: '', name: '', trades: [], charts: {}, marketData: [], syncInterval: null };
+        const baseEntities = ["Rajwada Solar Hub", "Palda Industrial Bio", "Vijay Nagar PV Node", "Annapurna Rooftop", "Scheme 54 Smart Grid", "Bhawarkua Wind Hybrid", "Saket Green Energy", "Sudama Solar Field"];
+        const GRID_RATE = 5.50;
+
+        // CUSTOM CURSOR
+        const cursor = document.getElementById('custom-cursor');
+        const dot = document.getElementById('cursor-dot');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX - 10 + 'px'; cursor.style.top = e.clientY - 10 + 'px';
+            dot.style.left = e.clientX - 2 + 'px'; dot.style.top = e.clientY - 2 + 'px';
+        });
+
+        // ROLE & AUTH
+        function selectRole(r) { state.userRole = r; hideAll(); document.getElementById('screen-auth').classList.remove('hidden'); }
+        function requestOTP() {
+            state.name = document.getElementById('user-name').value || "Indore Citizen";
+            state.otp = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('otp-hint').innerText = "NODE SYNC KEY: " + state.otp;
+            hideAll(); document.getElementById('screen-otp').classList.remove('hidden');
+        }
+
+        function verifyOTP() {
+            if(document.getElementById('otp-in').value === state.otp) {
+                hideAll(); 
+                document.getElementById('screen-market').classList.remove('hidden');
+                document.getElementById('nav-controls').classList.remove('hidden');
+                document.getElementById('nav-init').innerText = state.name[0];
+                if(state.userRole === 'Producer') document.getElementById('producer-tool').classList.remove('hidden');
+                
+                initMarketSync(); 
+            } else { alert("Sync Key Mismatch."); }
+        }
+
+        // SYNC LOGIC (FETCH FROM SERVER)
+        async function initMarketSync() {
+            await fetchMarket();
+            state.syncInterval = setInterval(fetchMarket, 3000); // Live update every 3 seconds
+        }
+
+        async function fetchMarket() {
+            try {
+                const response = await fetch('/api/market');
+                const serverItems = await response.json();
+                
+                // Mix static local data with server-listed data
+                const staticData = Array.from({length: 124}).map((_, i) => ({
+                    id: 'static-'+i,
+                    name: baseEntities[i % baseEntities.length] + " Unit " + (i + 1),
+                    price: (2.5 + (i * 0.01) % 1.5).toFixed(2),
+                    units: 100 + (i * 2),
+                    trending: i % 5 === 0
+                }));
+
+                state.marketData = [...serverItems, ...staticData];
+                renderMarket();
+            } catch (e) { console.error("Sync Error:", e); }
+        }
+
+        function renderMarket() {
+            const container = document.getElementById('market-listings');
+            const query = document.getElementById('search-grid').value.toLowerCase();
+            const filtered = state.marketData.filter(item => item.name.toLowerCase().includes(query));
+            
+            document.getElementById('node-count-display').innerText = `${filtered.length} ACTIVE ENTITIES`;
+            container.innerHTML = filtered.map(item => `
+                <div class="leaf-glass p-8 grid-card" onclick="showPerf('${item.name}')">
+                    ${item.trending ? '<span class="text-[8px] bg-green-500 text-black px-2 py-1 rounded-full font-black mb-4 inline-block">TRENDING</span>' : ''}
+                    <p class="text-[9px] text-green-400 font-black uppercase mb-1">Indore P2P Grid</p>
+                    <h3 class="text-xl font-black mb-6">${item.name}</h3>
+                    <div class="flex justify-between items-end">
+                        <div><p class="text-[9px] text-slate-500 font-bold uppercase">Rate</p><p class="text-xl font-black">₹${item.price}</p></div>
+                        <div class="text-right">
+                            ${state.userRole === 'Consumer' ? 
+                            `<button onclick="event.stopPropagation(); buyEnergy('${item.name}', ${item.price})" class="px-6 py-2 bg-white text-black font-black rounded-xl text-[10px] uppercase hover:bg-green-400">Buy</button>` : 
+                            `<p class="text-[9px] text-green-400 font-bold italic">Active</p>`}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // PRODUCER: SUBMIT TO SERVER
+        async function submitListing() {
+            const name = document.getElementById('list-name').value;
+            const price = document.getElementById('list-rate').value;
+            const qty = document.getElementById('list-qty').value;
+            if(!name || !price || !qty) return alert("Fill all fields");
+
+            const newEntry = {
+                id: Date.now(),
+                name: name,
+                price: parseFloat(price).toFixed(2),
+                units: qty,
+                trending: true
+            };
+
+            await fetch('/api/market', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newEntry)
+            });
+
+            state.trades.push({ name, qty: parseFloat(qty), price: parseFloat(price), cost: price * qty, saved: (price - 3) * qty, date: new Date().toLocaleTimeString() + " (Listed)" });
+            
+            updateUI();
+            toggleSuite('screen-producer');
+            fetchMarket();
+        }
+
+        // CONSUMER: SORTING
+        function sortMarket(criteria) {
+            if (criteria === 'price-low') state.marketData.sort((a, b) => a.price - b.price);
+            if (criteria === 'price-high') state.marketData.sort((a, b) => b.price - a.price);
+            if (criteria === 'trending') state.marketData.sort((a, b) => (b.trending ? 1 : 0) - (a.trending ? 1 : 0));
+            if (criteria === 'best') state.marketData.sort((a, b) => a.price - b.price); // Simple logic
+            renderMarket();
+        }
+
+        function buyEnergy(name, price) {
+            const qty = prompt(`kWh to purchase from ${name}:`);
+            if(!qty || isNaN(qty)) return;
+            const cost = qty * price;
+            if(cost > state.wallet) return alert("Insufficient Credits");
+            state.wallet -= cost;
+            state.trades.push({ name, qty: parseFloat(qty), price: parseFloat(price), cost, saved: (qty * GRID_RATE) - cost, date: new Date().toLocaleTimeString() });
+            updateUI();
+            alert("Transaction Successful!");
+        }
+
+        function updateUI() {
+            document.getElementById('wallet-display').innerText = `₹${state.wallet.toFixed(2)}`;
+            document.getElementById('stat-wallet').innerText = `₹${state.wallet.toFixed(2)}`;
+            const totalSavings = state.trades.reduce((a, b) => a + (b.saved || 0), 0);
+            const totalCarbon = state.trades.reduce((a, b) => a + (b.qty * 0.8), 0);
+            document.getElementById('stat-savings').innerText = `₹${totalSavings.toFixed(2)}`;
+            document.getElementById('stat-carbon').innerText = `${totalCarbon.toFixed(1)} kg`;
+
+            document.getElementById('history-log').innerHTML = state.trades.map(t => `
+                <div class="leaf-glass p-6 flex justify-between items-center border border-white/5">
+                    <div><p class="font-black">${t.name}</p><p class="text-[9px] text-slate-500">${t.date}</p></div>
+                    <p class="font-black text-green-400">₹${t.cost.toFixed(2)}</p>
+                </div>
+            `).reverse().join('');
+        }
+
+        // CHARTS & MODALS
+        function toggleSuite(id) {
+            const el = document.getElementById(id);
+            const isHidden = window.getComputedStyle(el).display === 'none';
+            el.style.display = isHidden ? 'block' : 'none';
+            if(isHidden && id === 'screen-profile') renderProfileCharts();
+            if(isHidden && id === 'screen-producer') renderProducerCharts();
+        }
+
+        function renderProfileCharts() {
+            const ctx1 = document.getElementById('profitChart').getContext('2d');
+            if(state.charts.p) state.charts.p.destroy();
+            state.charts.p = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: state.trades.map(t => t.date),
+                    datasets: [{ label: 'Cumulative ROI', data: state.trades.map((t, i) => state.trades.slice(0, i+1).reduce((a,b)=>a+(b.saved||0),0)), borderColor: '#5ff16a', fill: true, backgroundColor: 'rgba(95,241,106,0.1)' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctx2 = document.getElementById('compareChart').getContext('2d');
+            if(state.charts.c) state.charts.c.destroy();
+            state.charts.c = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: state.trades.map(t => t.name),
+                    datasets: [{ label: 'Price Efficiency (₹)', data: state.trades.map(t => t.price), backgroundColor: '#3b82f6' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderProducerCharts() {
+            const ctx = document.getElementById('producerYieldChart').getContext('2d');
+            if(state.charts.y) state.charts.y.destroy();
+            state.charts.y = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['8am', '12pm', '4pm', '8pm'],
+                    datasets: [{ label: 'Production Yield', data: [15, 85, 40, 5], borderColor: '#5ff16a' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function showPerf(name) {
+            if(state.userRole !== 'Consumer') return;
+            document.getElementById('modal-perf').classList.remove('hidden');
+            document.getElementById('perf-title').innerText = name + " Past Performance";
+            const ctx = document.getElementById('nodePerfChart').getContext('2d');
+            if(state.charts.n) state.charts.n.destroy();
+            state.charts.n = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: [{ label: 'kWh Efficiency', data: [150, 180, 160, 200, 190], borderColor: '#5ff16a' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function closePerf() { document.getElementById('modal-perf').classList.add('hidden'); }
+        function hideAll() { document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); }
+    </script>
+</body>
+</html>
