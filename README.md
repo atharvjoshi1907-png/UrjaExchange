@@ -1,4 +1,4 @@
-UrjaExchange is a decentralized P2P energy marketplace designed for the city of Indore. It transforms the local power grid into a "Nature-Grid" where residents can choose to be Producers (selling solar surplus) or Consumer (buying clean energy). The platform streamlines the green energy transition by allowing neighbors to trade power directly, bypassing traditional overheads and maximizing local resources.
+UrjaExchange is a decentralized P2P energy marketplace designed for the city of Indore. It transforms the local power grid into a "Nature-Grid" where residents can choose to be Producers (selling solar surplus) or Consumers (buying clean energy). The platform streamlines the green energy transition by allowing neighbors to trade power directly, bypassing traditional overheads and maximizing local resources.
 
 Core Functionalities
 Role-Based Access: Specialized dashboards for energy producers and consumers.
@@ -12,3 +12,6 @@ Grid Intelligence: Built-in analytics tracking market price-to-volume trends via
 Financial Tracking: Automated ROI and Profit/Loss calculation comparing P2P rates against the standard grid rate of 5.50/kWh.
 
 Integrated Design: High-performance UI built with Tailwind CSS, utilizing custom energy-flow visual assets.
+
+To initialise the server in the file, we first clone the GitHub repo, open the terminal for server.py, and then type the command: - 
+python3 server.py (for Macbook users) and python server.py (for windows user). 
